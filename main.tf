@@ -35,17 +35,13 @@ resource "libvirt_volume" "centos8-qcow2" {
   format = "qcow2"
 }
 
-# get user data info
-data "template_file" "user_data" {
-  template = "${file("${path.module}/cloud_init.cfg")}"
+resource "libvirt_cloudinit_disk" "commoninit" {
+  name = "commoninit.iso"
+  user_data = "${data.template_file.user_data.rendered}"
 }
 
-# Use CloudInit to add the instance
-resource "libvirt_cloudinit_disk" "commoninit" {
-  count = "${resource.libvirt_cloudinit_disk.commoninit != "null" ? 0 : 1}"
-  name = "commoninit.iso"
-  pool = "default" # List storage pools using virsh pool-list
-  user_data      = "${data.template_file.user_data.rendered}"
+data "template_file" "user_data" {
+  template = "${file("${path.module}/cloud_init.cfg")}"
 }
 
 resource "libvirt_domain" "homework" {
@@ -53,14 +49,17 @@ resource "libvirt_domain" "homework" {
   memory = "2048"
   vcpu = 2
 
+  cloudinit = "${libvirt_cloudinit_disk.commoninit.id}"
+
   network_interface {
     network_name = "default"
+    wait_for_lease = true
   }
-
 
   disk {
     volume_id = "${libvirt_volume.centos8-qcow2.id}"
   }
+
 
   console {
     type = "pty"
@@ -74,4 +73,8 @@ resource "libvirt_domain" "homework" {
     autoport = true
   }
 
+}
+
+output "ip_addr" {
+  value = libvirt_domain.homework.*.network_interface.0.addresses
 }
