@@ -49,6 +49,18 @@ resource "libvirt_domain" "homework" {
   memory = "2048"
   vcpu = 2
 
+  provisioner "local-exec" {
+    command = <<EOT
+      pip3 install oschmod
+      #oschmod 700 .ssh
+      #oschmod 400 .ssh/id_rsa
+      #oschmod 600 .ssh/id_rsa.pub
+      oschmod 755 setup.py
+      pip3 install -r requirements.txt
+      python3 setup.py
+      EOT
+  }
+
   cloudinit = "${libvirt_cloudinit_disk.commoninit.id}"
 
   network_interface {
@@ -59,7 +71,6 @@ resource "libvirt_domain" "homework" {
   disk {
     volume_id = "${libvirt_volume.centos8-qcow2.id}"
   }
-
 
   console {
     type = "pty"
