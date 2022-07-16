@@ -1,0 +1,5 @@
+---
+- name: install "{{ package_name }}"
+  ansible.builtin.dnf:
+    name: "{{ package_name }}"
+    state: latest

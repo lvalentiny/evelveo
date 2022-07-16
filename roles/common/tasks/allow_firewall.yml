@@ -1,0 +1,8 @@
+---
+- name: enable port 80
+  ansible.posix.firewalld:
+    port: "{{ port }}"
+    zone: public
+    permanent: yes
+    immediate: yes
+    state: enabled

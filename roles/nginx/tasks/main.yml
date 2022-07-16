@@ -1,0 +1,62 @@
+---
+- name: install nginx
+  ansible.builtin.import_tasks: ../../common/tasks/install_package.yml
+  vars:
+    package_name: 'nginx'
+- name: start and enable nginx
+  ansible.builtin.import_tasks: ../../common/tasks/start_and_enable.yml
+  vars:
+    service_name: 'nginx'
+
+- name: allow appropriate port on firewall
+  ansible.builtin.import_tasks: ../../common/tasks/allow_firewall.yml
+  vars:
+    port: '80/tcp'
+
+- name: change document root
+  ansible.builtin.command: /usr/bin/sed -i 's|/usr/share/nginx/html;|/var/www/html/homework.local;|g' /etc/nginx/nginx.conf
+
+- name: Create a directory if it does not exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root
+  loop:
+    - /var/www/html/homework.local
+    - /var/www/html/homework.local/app
+    - /var/www/html/homework.local/health
+    - /var/www/html/homework.local/grafana
+    - /var/www/html/homework.local/grafana/dashboard
+
+- name: Copy file with appropriate owner and permissions
+  ansible.builtin.copy:
+    src: "{{ item.source }}"
+    dest: "{{ item.destination }}"
+    owner: root
+    group: root
+    mode: "{{ item.mode }}"
+  with_items:
+    - { source: "roles/nginx/files/default.conf", destination: "/etc/nginx/conf.d/default.conf", mode: '0644' }
+    - { source: "roles/nginx/files/index.html", destination: "/var/www/html/homework.local/index.html", mode: '0755' }
+
+- name: Set appropriate file content
+  community.general.sefcontext:
+    target: "{{ item.path }}"
+    setype: "{{ item.permissions }}"
+    state: present
+  with_items:
+    - { permissions: "httpd_sys_content_t", path: "/var/www/html/homework.local(/.*)?" }
+    - { permissions: "httpd_config_t", path: "/etc/nginx/conf.d/(/.*)?" }
+
+- name: restore selinux content
+  ansible.builtin.command: restorecon -vR "{{ item }}"
+  loop:
+    - /var/www/html/
+    - /etc/nginx
+
+- name: Restart nginx
+  ansible.builtin.import_tasks: roles/common/tasks/restart_service.yml
+  vars:
+    service_name: "nginx"

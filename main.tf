@@ -51,13 +51,11 @@ resource "libvirt_domain" "homework" {
 
   provisioner "local-exec" {
     command = <<EOT
-      pip3 install oschmod
-      #oschmod 700 .ssh
-      #oschmod 400 .ssh/id_rsa
-      #oschmod 600 .ssh/id_rsa.pub
-      oschmod 755 setup.py
-      pip3 install -r requirements.txt
-      python3 setup.py
+      chmod 700 .ssh
+      chmod 400 .ssh/id_rsa
+      chmod 600 .ssh/id_rsa.pub
+      pip3 install ansible
+      ansible-galaxy collection install ansible.posix
       EOT
   }
 
@@ -82,6 +80,16 @@ resource "libvirt_domain" "homework" {
     type = "spice"
     listen_type = "address"
     autoport = true
+  }
+
+ provisioner "local-exec" {
+    command = <<EOT
+      echo "[homework]" > homework.ini
+      echo "${libvirt_domain.homework.network_interface[0].addresses[0]}" >> homework.ini
+      echo "ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'" >> homework.ini
+      export ANSIBLE_HOST_KEY_CHECKING=False 
+      ansible-playbook -u automatic --private-key .ssh/id_rsa -i homework.ini deploy.yml
+      EOT
   }
 
 }
