@@ -54,8 +54,8 @@ resource "libvirt_domain" "homework" {
       chmod 700 .ssh
       chmod 400 .ssh/id_rsa
       chmod 600 .ssh/id_rsa.pub
-      pip3 install ansible
-      ansible-galaxy collection install ansible.posix
+      chmod 755 setup.sh
+      ./setup.sh
       EOT
   }
 
