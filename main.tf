@@ -87,8 +87,10 @@ resource "libvirt_domain" "homework" {
       echo "[homework]" > homework.ini
       echo "${libvirt_domain.homework.network_interface[0].addresses[0]}" >> homework.ini
       echo "ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'" >> homework.ini
-      export ANSIBLE_HOST_KEY_CHECKING=False 
+      export ANSIBLE_HOST_KEY_CHECKING=False
+      source ansible/bin/activate 
       ansible-playbook -u automatic --private-key .ssh/id_rsa -i homework.ini deploy.yml
+      deactivate
       EOT
   }
 
