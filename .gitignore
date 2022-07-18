@@ -1,1 +1,3 @@
 terraform.tfstate*
+virtual_envs/*
+homework.ini

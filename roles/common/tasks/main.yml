@@ -1,11 +1,11 @@
 ---
-- name: Fix repos
-  ansible.builtin.shell: /usr/bin/sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-* && /usr/bin/sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
-
-- name: Wait 60 seconds for target connection to become reachable/usable
+- name: Wait 180 seconds for target connection to become reachable/usable
   ansible.builtin.wait_for_connection:
     delay: 30
-    timeout: 60
+    timeout: 180
+
+- name: Fix repos
+  ansible.builtin.shell: /usr/bin/sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-* && /usr/bin/sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
 
 - name: install package for firewalld
   ansible.builtin.import_tasks: install_package.yml

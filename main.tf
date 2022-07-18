@@ -84,13 +84,12 @@ resource "libvirt_domain" "homework" {
 
  provisioner "local-exec" {
     command = <<EOT
-      echo "[homework]" > homework.ini
-      echo "${libvirt_domain.homework.network_interface[0].addresses[0]}" >> homework.ini
+      echo "[hosts]" > homework.ini
+      echo "homework ansible_host=${libvirt_domain.homework.network_interface[0].addresses[0]}" >> homework.ini
       echo "ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'" >> homework.ini
       export ANSIBLE_HOST_KEY_CHECKING=False
-      source ansible/bin/activate 
+      source virtual_envs/ansible/bin/activate 
       ansible-playbook -u automatic --private-key .ssh/id_rsa -i homework.ini deploy.yml
-      deactivate
       EOT
   }
 
