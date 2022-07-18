@@ -41,6 +41,12 @@
     - { source: "roles/nginx/files/default.conf", destination: "/etc/nginx/conf.d/default.conf", mode: '0644' }
     - { source: "roles/nginx/files/index.html", destination: "/var/www/html/homework.local/index.html", mode: '0755' }
 
+- name: Adjust /etc/nginx/nginx.conf
+  ansible.builtin.lineinfile:
+    path: /etc/nginx/nginx.conf
+    insertbefore: '^    log_format  main'
+    line: '    server_names_hash_bucket_size 128;'
+
 - name: Set appropriate file content
   community.general.sefcontext:
     target: "{{ item.path }}"

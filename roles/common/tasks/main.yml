@@ -1,22 +1,11 @@
 ---
-- name: Wait 180 seconds for target connection to become reachable/usable
-  ansible.builtin.wait_for_connection:
-    delay: 30
-    timeout: 60
-
 - name: Fix repos
   ansible.builtin.shell: /usr/bin/sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-* && /usr/bin/sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
 
-- name: Update system
-  ansible.builtin.command: /usr/bin/dnf update -y
-
-- name: Reboot server
-  ansible.builtin.reboot:
-
-- name: Wait 180 seconds for target connection to become reachable/usable
+- name: Wait 60 seconds for target connection to become reachable/usable
   ansible.builtin.wait_for_connection:
     delay: 30
-    timeout: 120
+    timeout: 60
 
 - name: install package for firewalld
   ansible.builtin.import_tasks: install_package.yml
